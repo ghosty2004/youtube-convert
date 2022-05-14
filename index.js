@@ -86,6 +86,8 @@ fs.readFile(`${__dirname}/download.txt`, async (err, data) => {
 
         await canDownload(musicName);
 
+        console.log("");
+
         if(musicName.length == 0) return console.log(`${"ERROR".red}: Can't use empty music name.`), setCurrentProgressMusicStatus(musicName, "error");
 
         if(fs.existsSync(`${__dirname}/converted/${musicName}.mp3`)) return console.log(`${"SKIPPING".cyan}: Music with name ${`${musicName}`.green} already exists.`), setCurrentProgressMusicStatus(musicName, "error");
@@ -110,5 +112,11 @@ fs.readFile(`${__dirname}/download.txt`, async (err, data) => {
 
     await waitForEverythingToFinish();
 
-    console.log(`${"INFO".yellow}: Everything was finished. Thanks for using this script <3.`);
+    console.log("");
+    console.log(`${"INFO".yellow}: Everything was finished. Thanks for using this script ${"<3".red}.`);
+    console.log(`${"INFO".yellow}: You can find converted files here: ${`${__dirname}\\converted`.green}`);
+    console.log(`${"INFO".yellow}: Process will be exit in ${"5".green} seconds.`);
+
+    await timeout(5000);
+    process.exit();
 });
