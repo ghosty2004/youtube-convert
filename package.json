@@ -13,7 +13,7 @@
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "colors": "^1.4.0",
     "fluent-ffmpeg": "^2.1.2",
-    "youtube-search-without-api-key": "^1.0.7",
+    "youtube-search-without-api-key": "1.0.7",
     "ytdl-core": "^4.11.2"
   }
 }
