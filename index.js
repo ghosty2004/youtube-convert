@@ -96,13 +96,16 @@ fs.readFile("./download.txt", async (err, data) => {
 
         youtubeSearch.search(musicName).then((musicData) => {
             const itemData = musicData[0];
+            var songTitle = itemData.title
             if(!itemData) return console.log(`${"ERROR".red}: Music with title ${`${musicName}`.green} was not found.`), setCurrentProgressMusicStatus(musicName, "error");
             if(fs.existsSync(`./converted/${itemData.title}.mp3`)) return console.log(`${"SKIPPING".cyan}: Music with name ${`${itemData.title}`.green} already exists.`), setCurrentProgressMusicStatus(musicName, "error");
             console.log(`${"INFO".yellow}: Music with name ${`${itemData.title}`.green} was found. Starting download...`);
+            songTitle = songTitle.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '');
+            songTitle = songTitle.replace(/[^a-zA-Z ]/g, "")
             const stream = ytdl(itemData.url, {
                 quality: "highestaudio"
             });
-            const status = ffmpeg(stream).audioBitrate(128).save(`./converted/${itemData.title}.mp3`);
+            const status = ffmpeg(stream).audioBitrate(128).save(`./converted/${songTitle}.mp3`);
             let error = false;
             status.on("error", (err) => {
                 console.log(err);
