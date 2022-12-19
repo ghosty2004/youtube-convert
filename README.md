@@ -2,5 +2,5 @@
 
 **Usage:**
 
-- Just create **download.txt** file in root directory, then input in the text document the youtube titles.
+- Create **download.txt** file in root directory, then input in the text document the youtube titles or links.
 - Have fun :)
