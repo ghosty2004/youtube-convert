@@ -91,30 +91,29 @@ fs.readFile("./download.txt", async (err, data) => {
         console.log("");
 
         if(musicName.length == 0) return console.log(`${"ERROR".red}: Can't use empty music name.`), setCurrentProgressMusicStatus(musicName, "error");
-
-        if(fs.existsSync(`./converted/${musicName}.mp3`)) return console.log(`${"SKIPPING".cyan}: Music with name ${`${musicName}`.green} already exists.`), setCurrentProgressMusicStatus(musicName, "error");
         
         console.log(`${"INFO".yellow}: Searching for ${`${musicName}`.green}.`);
 
         youtubeSearch.search(musicName).then((musicData) => {
             const itemData = musicData[0];
             if(!itemData) return console.log(`${"ERROR".red}: Music with title ${`${musicName}`.green} was not found.`), setCurrentProgressMusicStatus(musicName, "error");
-            console.log(`${"INFO".yellow}: Music with name ${`${musicName}`.green} was found. Starting download...`);
+            if(fs.existsSync(`./converted/${itemData.title}.mp3`)) return console.log(`${"SKIPPING".cyan}: Music with name ${`${itemData.title}`.green} already exists.`), setCurrentProgressMusicStatus(musicName, "error");
+            console.log(`${"INFO".yellow}: Music with name ${`${itemData.title}`.green} was found. Starting download...`);
             const stream = ytdl(itemData.url, {
                 quality: "highestaudio"
             });
-            const status = ffmpeg(stream).audioBitrate(128).save(`./converted/${musicName}.mp3`);
+            const status = ffmpeg(stream).audioBitrate(128).save(`./converted/${itemData.title}.mp3`);
             let error = false;
             status.on("error", (err) => {
                 console.log(err);
                 error = true;
-                console.log(`${"ERROR".red}: Music with name ${`${musicName}`.green} can't download due to unexpected error.`);
+                console.log(`${"ERROR".red}: Music with name ${`${itemData.title}`.green} can't download due to unexpected error.`);
                 setCurrentProgressMusicStatus(musicName, "error");
             });
 
             status.on("end", () => {
                 if(error) return;
-                console.log(`${"INFO".yellow}: Music with name ${`${musicName}`.green} was successfully downloaded.`);
+                console.log(`${"INFO".yellow}: Music with name ${`${itemData.title}`.green} was successfully downloaded.`);
                 setCurrentProgressMusicStatus(musicName, "finished");
             });
         });
