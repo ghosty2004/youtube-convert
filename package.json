@@ -3,14 +3,17 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Ghosty2004",
   "license": "ISC",
   "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "colors": "^1.4.0",
-    "youtube-mp3-converter": "^1.0.3",
-    "youtube-search-without-api-key": "^1.0.7"
+    "fluent-ffmpeg": "^2.1.2",
+    "youtube-search-without-api-key": "^1.0.7",
+    "ytdl-core": "^4.11.2"
   }
 }

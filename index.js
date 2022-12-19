@@ -1,14 +1,17 @@
 process.stdin.resume();
 
-const fs = require("fs");
-const youtubeSearch = require("youtube-search-without-api-key");
-const youtubeMp3Converter = require("youtube-mp3-converter");
-require("colors");
+import packageJSON from "./package.json" assert { type: "json" };
+import fs from "fs";
+import youtubeSearch from "youtube-search-without-api-key";
+import ffmpeg from "fluent-ffmpeg";
+import ytdl from "ytdl-core";
+import { path as ffmpegPath } from "@ffmpeg-installer/ffmpeg";
+import "colors";
 
-const packageJSON = require("./package.json");
+ffmpeg.setFfmpegPath(ffmpegPath);
 
-if(!fs.existsSync(`${__dirname}/converted`)) fs.mkdirSync(`${__dirname}/converted`);
-if(!fs.existsSync(`${__dirname}/download.txt`)) fs.writeFileSync(`${__dirname}/download.txt`, "");
+if(!fs.existsSync("./converted")) fs.mkdirSync("./converted");
+if(!fs.existsSync("./download.txt")) fs.writeFileSync("./download.txt", "");
 
 /** @type {Array<{musicName: string, status: "downloading"|"queue"|"finished"|"error"}}>} */
 let downloads = [];
@@ -67,13 +70,12 @@ function timeout(ms) {
     return new Promise((resolve) => { setTimeout(resolve, ms); });
 }
 
-fs.readFile(`${__dirname}/download.txt`, async (err, data) => {
+fs.readFile("./download.txt", async (err, data) => {
     console.log(`${"INFO".yellow}: ${`Youtube-Convert@${packageJSON.version}`.green} was successfully loaded by ${`${packageJSON.author}`.green}.`);
     await timeout(1500);
 
     if(err) return console.log(`${"ERROR".red}: Unexpected.`);
 
-    const convertLinkToMp3 = youtubeMp3Converter(`${__dirname}/converted`);
     const text = data.toString().replace(/\r/g, "");
 
     text.split("\n").forEach(async(musicName, index) => {
@@ -90,7 +92,7 @@ fs.readFile(`${__dirname}/download.txt`, async (err, data) => {
 
         if(musicName.length == 0) return console.log(`${"ERROR".red}: Can't use empty music name.`), setCurrentProgressMusicStatus(musicName, "error");
 
-        if(fs.existsSync(`${__dirname}/converted/${musicName}.mp3`)) return console.log(`${"SKIPPING".cyan}: Music with name ${`${musicName}`.green} already exists.`), setCurrentProgressMusicStatus(musicName, "error");
+        if(fs.existsSync(`./converted/${musicName}.mp3`)) return console.log(`${"SKIPPING".cyan}: Music with name ${`${musicName}`.green} already exists.`), setCurrentProgressMusicStatus(musicName, "error");
         
         console.log(`${"INFO".yellow}: Searching for ${`${musicName}`.green}.`);
 
@@ -98,14 +100,22 @@ fs.readFile(`${__dirname}/download.txt`, async (err, data) => {
             const itemData = musicData[0];
             if(!itemData) return console.log(`${"ERROR".red}: Music with title ${`${musicName}`.green} was not found.`), setCurrentProgressMusicStatus(musicName, "error");
             console.log(`${"INFO".yellow}: Music with name ${`${musicName}`.green} was found. Starting download...`);
-            convertLinkToMp3(itemData.url, {
-                title: musicName
-            }).then(() => {
-                console.log(`${"INFO".yellow}: Music with name ${`${musicName}`.green} was successfully downloaded.`);
-                setCurrentProgressMusicStatus(musicName, "finished");
-            }).catch(() => {
+            const stream = ytdl(itemData.url, {
+                quality: "highestaudio"
+            });
+            const status = ffmpeg(stream).audioBitrate(128).save(`./converted/${musicName}.mp3`);
+            let error = false;
+            status.on("error", (err) => {
+                console.log(err);
+                error = true;
                 console.log(`${"ERROR".red}: Music with name ${`${musicName}`.green} can't download due to unexpected error.`);
                 setCurrentProgressMusicStatus(musicName, "error");
+            });
+
+            status.on("end", () => {
+                if(error) return;
+                console.log(`${"INFO".yellow}: Music with name ${`${musicName}`.green} was successfully downloaded.`);
+                setCurrentProgressMusicStatus(musicName, "finished");
             });
         });
     });
@@ -114,7 +124,7 @@ fs.readFile(`${__dirname}/download.txt`, async (err, data) => {
 
     console.log("");
     console.log(`${"INFO".yellow}: Everything was finished. Thanks for using this script ${"<3".red}.`);
-    console.log(`${"INFO".yellow}: You can find converted files here: ${`${__dirname}\\converted`.green}`);
+    console.log(`${"INFO".yellow}: You can find converted files here: ${`./converted`.green}`);
     console.log(`${"INFO".yellow}: Process will be exit in ${"5".green} seconds.`);
 
     await timeout(5000);
